@@ -1,5 +1,6 @@
-# skunk  <img src="https://raw.githubusercontent.com/whitead/skunk/main/tests/skunk.svg">
+# skunk [![build](https://github.com/whitead/skunk/actions/workflows/build.yml/badge.svg)](https://whitead.github.io/skunk/)[![PyPI version](https://badge.fury.io/py/skunk.svg)](https://badge.fury.io/py/skunk) 
 
+ <img src="https://raw.githubusercontent.com/whitead/skunk/main/tests/skunk.svg">
 
 Insert SVGs into matplotlib
 
