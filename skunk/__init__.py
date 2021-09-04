@@ -16,6 +16,12 @@ class Box(DrawingArea):
         p.set_gid(gid)
 
 
+def connect(ax, gid):
+    p = Rectangle((0, 0), 1, 1)
+    ax.add_artist(p)
+    p.set_gid(gid)
+
+
 def pltsvg(fig=None, **kwargs):
     with io.BytesIO() as output:
         if fig is None:
@@ -71,8 +77,7 @@ def _rewrite_svg(svg, rdict):
             rr.attrib['height'] = str(dy)
             e.insert(0, rr)
         else:
-            print('Warning, could not find', rk)
-            print(list(idmap.keys()))
+            raise UserWarning('Warning, could not find skunk key', rk)
     ET.register_namespace("", ns)
     return ET.tostring(root, encoding="unicode", method='xml')
 
@@ -89,7 +94,7 @@ def insert(replacements, svg=None):
         elif type(replacements[k]) == str and os.path.exists(replacements[k]):
             with open(replacements[k]) as f:
                 replacements[k] = f.read()
+
     # ok now do it
-    print(svg)
     svg = _rewrite_svg(svg, replacements)
     return svg
