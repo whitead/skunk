@@ -61,8 +61,6 @@ def test_skunk():
 
 
 def test_skunk2():
-    import numpy as np
-
     fig, axs = plt.subplots(ncols=2, squeeze=True)
 
     x = np.linspace(0, 2 * np.pi)
@@ -78,4 +76,21 @@ def test_skunk2():
             })
 
     with open('test-skunk2.svg', 'w') as f:
+        f.write(svg)
+
+
+def test_skunk3():
+
+    fig, axs = plt.subplots(ncols=2, squeeze=True)
+
+    x = np.linspace(0, 2 * np.pi)
+    axs[0].plot(x, np.sin(x))
+    skunk.connect(axs[1], 'sk')
+    plt.tight_layout()
+    svg = skunk.insert(
+        {
+            'sk': os.path.join(os.path.dirname(os.path.realpath(__file__)), 'skunk.svg')
+        })
+
+    with open('test-replaced.svg', 'w') as f:
         f.write(svg)
