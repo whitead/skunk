@@ -3,6 +3,10 @@
 
 Insert SVGs into matplotlib
 
+```sh
+pip install skunk
+```
+
 
 ## Overwrite Subplot
 
