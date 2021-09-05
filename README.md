@@ -24,7 +24,7 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 
-fig, axs = plt.subplots(ncols=2, squeeze=True)
+fig, axs = plt.subplots(ncols=2)
 
 x = np.linspace(0, 2 * np.pi)
 axs[0].plot(x, np.sin(x))
@@ -57,7 +57,7 @@ Read about [annotation boxes first](https://matplotlib.org/stable/gallery/text_l
 ```py
 import numpy as np
 
-fig, ax = plt.subplots(figsize=(300/72, 300/72))
+fig, ax = plt.subplots()
 
 x = np.linspace(0, 2 * np.pi)
 ax.plot(x, np.sin(x))
@@ -67,7 +67,7 @@ box = skunk.Box(50, 50, 'sk1')
 ab = AnnotationBbox(box, (np.pi / 2, 1),
                     xybox=(-5, -100),
                     xycoords='data',
-                    boxcoords="offset points",
+                    boxcoords='offset points',
                     arrowprops=dict(arrowstyle="->"))
 ax.add_artist(ab)
 
@@ -76,7 +76,7 @@ box = skunk.Box(50, 50, 'sk2')
 ab = AnnotationBbox(box, (3 * np.pi / 2, -1),
                     xybox=(-5, 100),
                     xycoords='data',
-                    boxcoords="offset points",
+                    boxcoords='offset points',
                     arrowprops=dict(arrowstyle="->"))
 
 ax.add_artist(ab)
