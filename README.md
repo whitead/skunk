@@ -10,7 +10,7 @@ pip install skunk
 
 ## Jupyter Notebooks
 
-To show generated SVGs in Jupyter Notebooks: *Currently, axes are cutoff when viewed in jupyter - I think due to restrictive viewport. Save to file to get pub read version*
+To show generated SVGs in Jupyter Notebooks: *Currently, axes are cutoff when viewed in jupyter - I think due to restrictive viewport. Save to file to get publication ready version*
 
 ```py
 skunk.display(svg)
