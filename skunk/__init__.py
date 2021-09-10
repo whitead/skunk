@@ -48,8 +48,10 @@ def pltsvg(fig=None, **kwargs):
 def display(svg):
     """A convenience function to dispaly SVG string in Jupyter Notebook
     """
-    from IPython.display import SVG, display
-    display(SVG(svg))
+    import IPython.display as display
+    import base64
+    data = base64.b64encode(svg.encode('utf8'))
+    display.display(display.HTML('<img src=data:image/svg+xml;base64,' + data.decode() + '>'))
 
 
 def _extract_loc(e):
@@ -91,7 +93,10 @@ def _rewrite_svg(svg, rdict):
                 x, y, dx, dy = _extract_loc(c)
                 e.remove(c)
             # set attributes on SVG so loc and width/height are correct
-            rr = ET.fromstring(rv)
+            try:
+                rr = ET.fromstring(rv)
+            except ET.ParseError:
+                raise ValueError('Your given replacement object is not valid SVG (perhaps filepath was not valid?)')
             rr.attrib['x'] = str(x)
             rr.attrib['y'] = str(y)
             rr.attrib['width'] = str(dx)

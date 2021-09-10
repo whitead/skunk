@@ -10,7 +10,7 @@ pip install skunk
 
 ## Jupyter Notebooks
 
-To show generated SVGs in Jupyter Notebooks: *Currently, axes are cutoff when viewed in jupyter - I think due to restrictive viewport. Save to file to get publication ready version*
+To show generated SVGs in Jupyter Notebooks:
 
 ```py
 skunk.display(svg)
@@ -41,8 +41,11 @@ svg = skunk.insert(
         'sk': 'skunk.svg'
     })
 
+# write to file
 with open('replaced.svg', 'w') as f:
     f.write(svg)
+# or in jupyter notebook
+skunk.display(svg)
 ```
 
 ### Output
@@ -55,7 +58,10 @@ with open('replaced.svg', 'w') as f:
 Read about [annotation boxes first](https://matplotlib.org/stable/gallery/text_labels_and_annotations/demo_annotation_box.html)
 
 ```py
+import skunk
+from matplotlib.offsetbox import AnnotationBbox
 import numpy as np
+import matplotlib.pyplot as plt
 
 fig, ax = plt.subplots()
 
@@ -89,8 +95,11 @@ svg = skunk.insert(
         'sk2': 'skunk.svg'
     })
 
+# write to file
 with open('replaced2.svg', 'w') as f:
     f.write(svg)
+# or in jupyter notebook
+skunk.display(svg)
 ```
 
 ### Output
