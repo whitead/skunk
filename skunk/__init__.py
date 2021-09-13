@@ -1,5 +1,5 @@
 from os import replace
-from matplotlib.offsetbox import DrawingArea
+from matplotlib.offsetbox import DrawingArea, OffsetImage
 from matplotlib.patches import Rectangle
 import io
 import matplotlib.pyplot as plt
@@ -17,6 +17,17 @@ class Box(DrawingArea):
         p = Rectangle((0, 0), width, height)
         self.add_artist(p)
         p.set_gid(gid)
+
+
+class ImageBox(OffsetImage):
+    """A subclass of matplotlib OffsetImage. Use this to have rastered image
+    that is optionally replaced by SVG.
+    """
+
+    def __init__(self, gid, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # want to replace child
+        self.properties()['children'][0].set_gid(gid)
 
 
 def connect(ax, gid):
@@ -51,7 +62,8 @@ def display(svg):
     import IPython.display as display
     import base64
     data = base64.b64encode(svg.encode('utf8'))
-    display.display(display.HTML('<img src=data:image/svg+xml;base64,' + data.decode() + '>'))
+    display.display(display.HTML(
+        '<img src=data:image/svg+xml;base64,' + data.decode() + '>'))
 
 
 def _extract_loc(e):
@@ -96,14 +108,17 @@ def _rewrite_svg(svg, rdict):
             try:
                 rr = ET.fromstring(rv)
             except ET.ParseError:
-                raise ValueError('Your given replacement object is not valid SVG (perhaps filepath was not valid?)')
+                raise ValueError(
+                    'Your given replacement object is not valid SVG (perhaps filepath was not valid?)')
             rr.attrib['x'] = str(x)
             rr.attrib['y'] = str(y)
             rr.attrib['width'] = str(dx)
             rr.attrib['height'] = str(dy)
             e.insert(0, rr)
         else:
-            raise UserWarning('Warning, could not find skunk key', rk)
+            raise UserWarning('Warning, could not find skunk key',
+                              rk, 'Here are the keys I did find', list(idmap.keys()))
+
     ET.register_namespace("", ns)
     return ET.tostring(root, encoding="unicode", method='xml')
 

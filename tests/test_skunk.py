@@ -110,3 +110,43 @@ def test_skunk_display():
         })
 
     skunk.display(svg)
+
+
+def test_skunk_img():
+
+    import numpy as np
+
+    fig, ax = plt.subplots(figsize=(300/72, 300/72))
+
+    x = np.linspace(0, 2 * np.pi)
+    ax.plot(x, np.sin(x))
+
+    with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'skunk.png'), 'rb') as file:
+        arr_img = plt.imread(file)
+
+    box = skunk.ImageBox(
+        'sk1', arr_img, zoom=0.2)
+    ab = AnnotationBbox(box, (np.pi / 2, 1),
+                        xybox=(-5, -100),
+                        xycoords='data',
+                        boxcoords="offset points",
+                        arrowprops=dict(arrowstyle="->"))
+    ax.add_artist(ab)
+
+    box = skunk.Box(50, 50, 'sk2')
+    ab = AnnotationBbox(box, (3 * np.pi / 2, -1),
+                        xybox=(-5, 100),
+                        xycoords='data',
+                        boxcoords="offset points",
+                        arrowprops=dict(arrowstyle="->"))
+
+    ax.add_artist(ab)
+
+    svg = skunk.insert(
+        {
+            'sk1': skunk.pltsvg(),
+            'sk2': os.path.join(os.path.dirname(os.path.realpath(__file__)), 'skunk.svg')
+        })
+
+    with open('test-skunk-img.svg', 'w') as f:
+        f.write(svg)
