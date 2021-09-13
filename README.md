@@ -105,3 +105,22 @@ skunk.display(svg)
 ### Output
 
 ![image](https://user-images.githubusercontent.com/908389/132105868-f0e4ae23-3ebf-4630-b230-8279d5791169.png)
+
+## SVG to Replace Image
+
+Sometimes you may want a raster image to appear if not using an SVG. This can be done with an `ImageBox`.
+The example above is identical, except we replace the `skunk.Box` with a `skunk.ImageBox` that has the same
+arguments (after first) as [`OffsetImage`](https://matplotlib.org/stable/api/offsetbox_api.html#matplotlib.offsetbox.OffsetImage)
+
+```py
+# use image box, so can have PNG when not in SVG
+with open(skunk.png', 'rb') as file:
+    skunk_img = plt.imread(file)
+box = skunk.ImageBox('sk2', skunk_img, zoom=0.1)
+```
+
+### Output
+
+You can see that the inner image contains the raster now instead of the blue rectangle. This example is overly fancy, normally you won't be nesting plots so the raster image will only appear if you're not using SVG.
+
+![image](https://user-images.githubusercontent.com/908389/133010015-a1713504-33b6-4c26-960d-6da50b5a9561.png)
