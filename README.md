@@ -35,7 +35,7 @@ skunk.connect(axs[1], 'sk')
 plt.tight_layout()
 
 # Overwrite using file path to my svg
-# Can also use string
+# Can also use a string that contains the SVG 
 svg = skunk.insert(
     {
         'sk': 'skunk.svg'
