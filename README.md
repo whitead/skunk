@@ -114,7 +114,7 @@ arguments (after first) as [`OffsetImage`](https://matplotlib.org/stable/api/off
 
 ```py
 # use image box, so can have PNG when not in SVG
-with open(skunk.png', 'rb') as file:
+with open('skunk.png', 'rb') as file:
     skunk_img = plt.imread(file)
 box = skunk.ImageBox('sk2', skunk_img, zoom=0.1)
 ```
