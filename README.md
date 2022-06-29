@@ -124,3 +124,12 @@ box = skunk.ImageBox('sk2', skunk_img, zoom=0.1)
 You can see that the inner image contains the raster now instead of the blue rectangle. This example is overly fancy, normally you won't be *recursively* nesting plots so the raster image will only appear if you're not using SVG.
 
 ![image](https://user-images.githubusercontent.com/908389/133010015-a1713504-33b6-4c26-960d-6da50b5a9561.png)
+
+### Save to PDF
+
+I prefer [`cairosvg`](https://github.com/Kozea/CairoSVG):
+
+```py
+import cairosvg
+cairosvg.svg2pdf(bytestring=svg, write_to='image.pdf')
+```
