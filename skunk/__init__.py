@@ -153,16 +153,24 @@ def insert(replacements, svg=None):
     return svg
 
 
-def layout_svgs(svgs, labels=None):
+def layout_svgs(svgs, labels=None, outline=None):
     """Lays out svgs in a grid with labels. SVGs are given the same amount of space.
 
     :param svgs: list of svgs
     :param labels: list of labels
+    :param outline: if `True`, adds a black outline round each subplot. Can also be list the size of the svgs to outline specific ones
     :returns: SVG as string
     """
-
+    has_label = True
     if labels is None:
+        has_label = False
         labels = [None] * len(svgs)
+    if outline is None:
+        outline = [False] * len(svgs)
+    elif type(outline) == bool:
+        outline = [outline] * len(svgs)
+    elif len(outline) != len(svgs):
+        raise ValueError("outline must be same length as svgs")
 
     if len(svgs) != len(labels):
         raise ValueError("Must have same number of svgs and labels")
@@ -170,17 +178,26 @@ def layout_svgs(svgs, labels=None):
     # make a matlpotlib grid
     nrows = int(math.ceil(math.sqrt(len(svgs))))
     ncols = int(math.ceil(len(svgs) / nrows))
-    fig, axs = plt.subplots(nrows, ncols, figsize=(ncols * 2, nrows * 2), frameon=False)
+    fig, axs = plt.subplots(
+        nrows,
+        ncols,
+        figsize=(ncols * 2, nrows * 2),
+        frameon=False,
+        gridspec_kw={"hspace": 0.25 if has_label else 0.05, "wspace": 0.05},
+    )
     axs = axs.flatten()
     replacements = {}
     for ax in axs:
         ax.axis("off")
-    for i, (svg, label) in enumerate(zip(svgs, labels)):
+    for i, (svg, label, o) in enumerate(zip(svgs, labels, outline)):
         ax = axs[i]
         if label is not None:
             ax.set_title(label)
         replacements[f"ax{i}"] = svg
         connect(ax, f"ax{i}")
-    plt.tight_layout(pad=0)
+        if o:
+            ax.axis("on")
+            ax.set_xticks([])
+            ax.set_yticks([])
     svg = insert(replacements)
     return svg
