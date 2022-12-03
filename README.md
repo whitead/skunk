@@ -125,11 +125,19 @@ You can see that the inner image contains the raster now instead of the blue rec
 
 ![image](https://user-images.githubusercontent.com/908389/133010015-a1713504-33b6-4c26-960d-6da50b5a9561.png)
 
-### Save to PDF
+## Save to PDF
 
 I prefer [`cairosvg`](https://github.com/Kozea/CairoSVG):
 
 ```py
 import cairosvg
 cairosvg.svg2pdf(bytestring=svg, write_to='image.pdf')
+```
+
+## Layout a set of SVGs
+
+Sometimes you just want to slap a bunch of SVGs together into a grid. You can do that with this method:
+
+```py
+svg = skunk.layout_svgs(svgs)
 ```
