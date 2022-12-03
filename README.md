@@ -2,7 +2,7 @@
 
  <img src="https://raw.githubusercontent.com/whitead/skunk/main/tests/skunk.svg">
 
-Insert SVG images into matplotlib elements. Can be used to also compose matplotlib plots by nesting them. 
+Insert SVG images into matplotlib elements. Can be used to also compose matplotlib plots by nesting them.
 
 ```sh
 pip install skunk
@@ -35,7 +35,7 @@ skunk.connect(axs[1], 'sk')
 plt.tight_layout()
 
 # Overwrite using file path to my svg
-# Can also use a string that contains the SVG 
+# Can also use a string that contains the SVG
 svg = skunk.insert(
     {
         'sk': 'skunk.svg'

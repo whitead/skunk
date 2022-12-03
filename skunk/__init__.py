@@ -6,11 +6,11 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import xml.etree.ElementTree as ET
 import os
+import math
 
 
 class Box(DrawingArea):
-    """A subclass of matplotlib DrawingArea that can be replaced
-    """
+    """A subclass of matplotlib DrawingArea that can be replaced"""
 
     def __init__(self, width, height, gid):
         super().__init__(width, height)
@@ -27,7 +27,7 @@ class ImageBox(OffsetImage):
     def __init__(self, gid, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # want to replace child
-        self.properties()['children'][0].set_gid(gid)
+        self.properties()["children"][0].set_gid(gid)
 
 
 def connect(ax, gid):
@@ -50,24 +50,25 @@ def pltsvg(fig=None, **kwargs):
     """
     with io.BytesIO() as output:
         if fig is None:
-            plt.savefig(output, format='svg', **kwargs)
+            plt.savefig(output, format="svg", **kwargs)
         else:
-            fig.savefig(output, format='svg', **kwargs)
+            fig.savefig(output, format="svg", **kwargs)
         return output.getvalue().decode()
 
 
 def display(svg):
-    """A convenience function to dispaly SVG string in Jupyter Notebook
-    """
+    """A convenience function to dispaly SVG string in Jupyter Notebook"""
     import IPython.display as display
     import base64
-    data = base64.b64encode(svg.encode('utf8'))
-    display.display(display.HTML(
-        '<img src=data:image/svg+xml;base64,' + data.decode() + '>'))
+
+    data = base64.b64encode(svg.encode("utf8"))
+    display.display(
+        display.HTML("<img src=data:image/svg+xml;base64," + data.decode() + ">")
+    )
 
 
 def _extract_loc(e):
-    path = e.attrib['d']
+    path = e.attrib["d"]
     spath = path.split()
     x, y = [], []
     a1, a2 = x, y
@@ -89,14 +90,13 @@ def _rewrite_svg(svg, rdict):
             e = idmap[rk]
             # try to use id width/height
             # case when we have image
-            if 'width' in e.attrib:
-                x, y = e.attrib['x'], -float(e.attrib['y'])
+            if "width" in e.attrib:
+                x, y = e.attrib["x"], -float(e.attrib["y"])
                 # make new node
                 # to hold things
-                new_e = ET.SubElement(
-                    parent_map[e], f'{{{ns}}}g', {'id': f'{rk}-g'})
+                new_e = ET.SubElement(parent_map[e], f"{{{ns}}}g", {"id": f"{rk}-g"})
                 parent_map[e].remove(e)
-                dx, dy = float(e.attrib['width']), float(e.attrib['height'])
+                dx, dy = float(e.attrib["width"]), float(e.attrib["height"])
                 e = new_e
             else:
                 # relying on there being a path object inside to give clue
@@ -109,18 +109,23 @@ def _rewrite_svg(svg, rdict):
                 rr = ET.fromstring(rv)
             except ET.ParseError:
                 raise ValueError(
-                    'Your given replacement object is not valid SVG (perhaps filepath was not valid?)')
-            rr.attrib['x'] = str(x)
-            rr.attrib['y'] = str(y)
-            rr.attrib['width'] = str(dx)
-            rr.attrib['height'] = str(dy)
+                    "Your given replacement object is not valid SVG (perhaps filepath was not valid?)"
+                )
+            rr.attrib["x"] = str(x)
+            rr.attrib["y"] = str(y)
+            rr.attrib["width"] = str(dx)
+            rr.attrib["height"] = str(dy)
             e.insert(0, rr)
         else:
-            raise UserWarning('Warning, could not find skunk key',
-                              rk, 'Here are the keys I did find', list(idmap.keys()))
+            raise UserWarning(
+                "Warning, could not find skunk key",
+                rk,
+                "Here are the keys I did find",
+                list(idmap.keys()),
+            )
 
     ET.register_namespace("", ns)
-    return ET.tostring(root, encoding="unicode", method='xml')
+    return ET.tostring(root, encoding="unicode", method="xml")
 
 
 def insert(replacements, svg=None):
@@ -134,7 +139,7 @@ def insert(replacements, svg=None):
     if svg is None:
         svg = pltsvg()
     if type(replacements) != dict:
-        raise ValueError('Must pass dictionary of skunk id: svg')
+        raise ValueError("Must pass dictionary of skunk id: svg")
     # check over keys to figure out types
     for k in replacements:
         if type(replacements[k]) == mpl.figure.Figure:
@@ -145,4 +150,37 @@ def insert(replacements, svg=None):
 
     # ok now do it
     svg = _rewrite_svg(svg, replacements)
+    return svg
+
+
+def layout_svgs(svgs, labels=None):
+    """Lays out svgs in a grid with labels. SVGs are given the same amount of space.
+
+    :param svgs: list of svgs
+    :param labels: list of labels
+    :returns: SVG as string
+    """
+
+    if labels is None:
+        labels = [None] * len(svgs)
+
+    if len(svgs) != len(labels):
+        raise ValueError("Must have same number of svgs and labels")
+
+    # make a matlpotlib grid
+    nrows = int(math.ceil(math.sqrt(len(svgs))))
+    ncols = int(math.ceil(len(svgs) / nrows))
+    fig, axs = plt.subplots(nrows, ncols, figsize=(ncols * 2, nrows * 2), frameon=False)
+    axs = axs.flatten()
+    replacements = {}
+    for ax in axs:
+        ax.axis("off")
+    for i, (svg, label) in enumerate(zip(svgs, labels)):
+        ax = axs[i]
+        if label is not None:
+            ax.set_title(label)
+        replacements[f"ax{i}"] = svg
+        connect(ax, f"ax{i}")
+    plt.tight_layout(pad=0)
+    svg = insert(replacements)
     return svg
