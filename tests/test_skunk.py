@@ -175,4 +175,4 @@ def test_skunk_grid():
     svgs = ["test-skunk-img.svg"] * len(words)
     skunk.layout_svgs(svgs, words)
     
-    skunk.layout_svgs(svgs, words, grid=(len(svgs), 1))
+    skunk.layout_svgs(svgs, words, shape=(len(svgs), 1))
