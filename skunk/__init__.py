@@ -162,6 +162,7 @@ def layout_svgs(svgs, labels=None, outline=None, shape=None):
     :param shape: optional tuple specifying shape (nrows, ncols)
     :returns: SVG as string
     """
+    import numpy as np
     has_label = True
     if labels is None:
         has_label = False
