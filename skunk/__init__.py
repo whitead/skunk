@@ -153,14 +153,16 @@ def insert(replacements, svg=None):
     return svg
 
 
-def layout_svgs(svgs, labels=None, outline=None):
+def layout_svgs(svgs, labels=None, outline=None, shape=None):
     """Lays out svgs in a grid with labels. SVGs are given the same amount of space.
 
     :param svgs: list of svgs
     :param labels: list of labels
     :param outline: if `True`, adds a black outline round each subplot. Can also be list the size of the svgs to outline specific ones
+    :param shape: optional tuple specifying shape (nrows, ncols)
     :returns: SVG as string
     """
+    import numpy as np
     has_label = True
     if labels is None:
         has_label = False
@@ -176,8 +178,13 @@ def layout_svgs(svgs, labels=None, outline=None):
         raise ValueError("Must have same number of svgs and labels")
 
     # make a matlpotlib grid
-    nrows = int(math.ceil(math.sqrt(len(svgs))))
-    ncols = int(math.ceil(len(svgs) / nrows))
+    if shape is None:
+        nrows = int(math.ceil(math.sqrt(len(svgs))))
+        ncols = int(math.ceil(len(svgs) / nrows))
+    else:
+        nrows, ncols = shape
+        if nrows * ncols != len(svgs):
+            raise ValueError("Bad shape specification")
     fig, axs = plt.subplots(
         nrows,
         ncols,
@@ -185,6 +192,8 @@ def layout_svgs(svgs, labels=None, outline=None):
         frameon=False,
         gridspec_kw={"hspace": 0.25 if has_label else 0.05, "wspace": 0.05},
     )
+    if type(axs) != np.ndarray:  # Happens if nrows=ncols=1
+        axs = np.array([[axs]])
     axs = axs.flatten()
     replacements = {}
     for ax in axs:
