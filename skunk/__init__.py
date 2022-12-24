@@ -181,7 +181,7 @@ def layout_svgs(svgs, labels=None, outline=None, shape=None):
         nrows = int(math.ceil(math.sqrt(len(svgs))))
         ncols = int(math.ceil(len(svgs) / nrows))
     else:
-        nrows, ncols = *shape
+        nrows, ncols = shape
         if nrows * ncols != len(svgs):
             raise ValueError("Bad shape specification")
     fig, axs = plt.subplots(
