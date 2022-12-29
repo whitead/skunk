@@ -153,13 +153,14 @@ def insert(replacements, svg=None):
     return svg
 
 
-def layout_svgs(svgs, labels=None, outline=None, shape=None):
+def layout_svgs(svgs, labels=None, outline=None, shape=None, figsize=None):
     """Lays out svgs in a grid with labels. SVGs are given the same amount of space.
 
     :param svgs: list of svgs
     :param labels: list of labels
     :param outline: if `True`, adds a black outline round each subplot. Can also be list the size of the svgs to outline specific ones
     :param shape: optional tuple specifying shape (nrows, ncols)
+    :param figsize: figure size
     :returns: SVG as string
     """
     import numpy as np
@@ -188,7 +189,7 @@ def layout_svgs(svgs, labels=None, outline=None, shape=None):
     fig, axs = plt.subplots(
         nrows,
         ncols,
-        figsize=(ncols * 2, nrows * 2),
+        figsize=(ncols * 2, nrows * 2) if figsize is None else figsize,
         frameon=False,
         gridspec_kw={"hspace": 0.25 if has_label else 0.05, "wspace": 0.05},
     )
