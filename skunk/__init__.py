@@ -81,7 +81,7 @@ def _extract_loc(e):
     return min(x), min(y), max(x) - min(x), max(y) - min(y)
 
 
-def _rewrite_svg(svg, rdict):
+def _rewrite_svg(svg, rdict, asp=True):
     ns = "http://www.w3.org/2000/svg"
     root, idmap = ET.XMLID(svg)
     parent_map = {c: p for p in root.iter() for c in p}
@@ -96,21 +96,26 @@ def _rewrite_svg(svg, rdict):
                 # to hold things
                 new_e = ET.SubElement(parent_map[e], f"{{{ns}}}g", {"id": f"{rk}-g"})
                 parent_map[e].remove(e)
+                
                 dx, dy = float(e.attrib["width"]), float(e.attrib["height"])
                 e = new_e
             else:
                 # relying on there being a path object inside to give clue
                 # to size
+
                 c = list(e)[0]
                 x, y, dx, dy = _extract_loc(c)
                 e.remove(c)
             # set attributes on SVG so loc and width/height are correct
             try:
                 rr = ET.fromstring(rv)
+
             except ET.ParseError:
                 raise ValueError(
                     "Your given replacement object is not valid SVG (perhaps filepath was not valid?)"
                 )
+            if not asp:
+                rr.attrib['preserveAspectRatio'] = 'none'
             rr.attrib["x"] = str(x)
             rr.attrib["y"] = str(y)
             rr.attrib["width"] = str(dx)
@@ -128,7 +133,7 @@ def _rewrite_svg(svg, rdict):
     return ET.tostring(root, encoding="unicode", method="xml")
 
 
-def insert(replacements, svg=None):
+def insert(replacements, svg=None, asp=True):
     """Replaces elements by `id` in `svg`
 
     :param replacements: Dictionary where key is id from :class:`Box` or :func:`connect`.
@@ -149,7 +154,7 @@ def insert(replacements, svg=None):
                 replacements[k] = f.read()
 
     # ok now do it
-    svg = _rewrite_svg(svg, replacements)
+    svg = _rewrite_svg(svg, replacements, asp)
     return svg
 
 
