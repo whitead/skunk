@@ -1,4 +1,5 @@
 from os import replace
+from secrets import token_hex
 from matplotlib.offsetbox import DrawingArea, OffsetImage
 from matplotlib.patches import Rectangle
 import io
@@ -133,6 +134,23 @@ def _rewrite_svg(svg, rdict, asp=True):
     return ET.tostring(root, encoding="unicode", method="xml")
 
 
+def _make_ids_unique(svg):
+    """Prepend all ids in an SVG with a random string."""
+    root, idmap = ET.XMLID(svg)
+    token = token_hex(8)
+    replacements = {}
+    for k in idmap:
+        idmap[k].attrib["id"] = f"skunk-{token}-{k}"
+        replacements["#" + k] = f"#skunk-{token}-{k}"
+
+    # Also replace all references to these ids. We do this after a conversion to string
+    # because references to ids appear deep in style elements.
+    result = ET.tostring(root, encoding="unicode", method="xml")
+    for k, v in replacements.items():
+        result = result.replace(k, v)
+    return result
+
+
 def insert(replacements, svg=None, asp=True):
     """Replaces elements by `id` in `svg`
 
@@ -152,6 +170,10 @@ def insert(replacements, svg=None, asp=True):
         elif type(replacements[k]) == str and os.path.exists(replacements[k]):
             with open(replacements[k]) as f:
                 replacements[k] = f.read()
+
+    # make all ids unique
+    for k in replacements:
+        replacements[k] = _make_ids_unique(replacements[k])
 
     # ok now do it
     svg = _rewrite_svg(svg, replacements, asp)
