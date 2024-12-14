@@ -85,6 +85,12 @@ def _extract_loc(e):
 def _rewrite_svg(svg, rdict, asp=True):
     ns = "http://www.w3.org/2000/svg"
     root, idmap = ET.XMLID(svg)
+    all_ids = [ET.XMLID(replacement)[1].keys() for replacement in rdict.values()]
+    all_ids.append(idmap.keys())
+    # Check that all ids are unique according to the SVG spec
+    if len(set().union(*all_ids)) != sum(map(len, all_ids)):
+        raise ValueError("All element id attributes must be unique")
+
     parent_map = {c: p for p in root.iter() for c in p}
     for rk, rv in rdict.items():
         if rk in idmap:
