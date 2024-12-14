@@ -89,7 +89,10 @@ def _rewrite_svg(svg, rdict, asp=True):
     all_ids.append(idmap.keys())
     # Check that all ids are unique according to the SVG spec
     if len(set().union(*all_ids)) != sum(map(len, all_ids)):
-        raise ValueError("All element id attributes must be unique")
+        raise ValueError(
+            "All element id attributes must be unique, use "
+            "randomize_ids=True to fix this"
+        )
 
     parent_map = {c: p for p in root.iter() for c in p}
     for rk, rv in rdict.items():
@@ -103,7 +106,7 @@ def _rewrite_svg(svg, rdict, asp=True):
                 # to hold things
                 new_e = ET.SubElement(parent_map[e], f"{{{ns}}}g", {"id": f"{rk}-g"})
                 parent_map[e].remove(e)
-                
+
                 dx, dy = float(e.attrib["width"]), float(e.attrib["height"])
                 e = new_e
             else:
@@ -157,12 +160,17 @@ def _make_ids_unique(svg):
     return result
 
 
-def insert(replacements, svg=None, asp=True):
+def insert(replacements, svg=None, asp=True, randomize_ids=False):
     """Replaces elements by `id` in `svg`
 
-    :param replacements: Dictionary where key is id from :class:`Box` or :func:`connect`.
-        Value is :class:`matplotlib.figure.Figure`, path to SVG file, or `str` of SVG.
-    :param svg: SVG text that will be modified. If `None`, current matplotlib figure will be used.
+    :param replacements: Dictionary where key is id from :class:`Box` or
+        :func:`connect`. Value is :class:`matplotlib.figure.Figure`, path to SVG file,
+        or `str` of SVG.
+    :param svg: SVG text that will be modified. If `None`, current matplotlib figure
+        will be used.
+    :param asp: If `True`, will keep aspect ratio of the original image.
+    :param randomize_ids: If `True`, will prepend all ids in the SVG with a random
+        string to guarantee uniqueness.
     :returns: SVG as string
     """
     if svg is None:
@@ -178,15 +186,25 @@ def insert(replacements, svg=None, asp=True):
                 replacements[k] = f.read()
 
     # make all ids unique
-    for k in replacements:
-        replacements[k] = _make_ids_unique(replacements[k])
+    if randomize_ids:
+        replacements = {
+            k: _make_ids_unique(replacement) for k, replacement in replacements.items()
+        }
 
     # ok now do it
     svg = _rewrite_svg(svg, replacements, asp)
     return svg
 
 
-def layout_svgs(svgs, labels=None, outline=None, shape=None, figsize=None, fontsize=None):
+def layout_svgs(
+    svgs,
+    labels=None,
+    outline=None,
+    shape=None,
+    figsize=None,
+    fontsize=None,
+    randomize_ids=False,
+):
     """Lays out svgs in a grid with labels. SVGs are given the same amount of space.
 
     :param svgs: list of svgs
@@ -195,6 +213,8 @@ def layout_svgs(svgs, labels=None, outline=None, shape=None, figsize=None, fonts
     :param shape: optional tuple specifying shape (nrows, ncols)
     :param figsize: figure size
     :param fontsize: font size of labels
+    :param randomize_ids: If `True`, will prepend all ids in the SVG with a random
+        string to guarantee uniqueness.
     :returns: SVG as string
     """
     import numpy as np
@@ -243,5 +263,5 @@ def layout_svgs(svgs, labels=None, outline=None, shape=None, figsize=None, fonts
             ax.axis("on")
             ax.set_xticks([])
             ax.set_yticks([])
-    svg = insert(replacements)
+    svg = insert(replacements, randomize_ids=randomize_ids)
     return svg
