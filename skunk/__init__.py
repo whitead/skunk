@@ -1,4 +1,5 @@
 from os import replace
+from secrets import token_hex
 from matplotlib.offsetbox import DrawingArea, OffsetImage
 from matplotlib.patches import Rectangle
 import io
@@ -84,6 +85,15 @@ def _extract_loc(e):
 def _rewrite_svg(svg, rdict, asp=True):
     ns = "http://www.w3.org/2000/svg"
     root, idmap = ET.XMLID(svg)
+    all_ids = [ET.XMLID(replacement)[1].keys() for replacement in rdict.values()]
+    all_ids.append(idmap.keys())
+    # Check that all ids are unique according to the SVG spec
+    if len(set().union(*all_ids)) != sum(map(len, all_ids)):
+        raise ValueError(
+            "All element id attributes must be unique, use "
+            "randomize_ids=True to fix this"
+        )
+
     parent_map = {c: p for p in root.iter() for c in p}
     for rk, rv in rdict.items():
         if rk in idmap:
@@ -96,7 +106,7 @@ def _rewrite_svg(svg, rdict, asp=True):
                 # to hold things
                 new_e = ET.SubElement(parent_map[e], f"{{{ns}}}g", {"id": f"{rk}-g"})
                 parent_map[e].remove(e)
-                
+
                 dx, dy = float(e.attrib["width"]), float(e.attrib["height"])
                 e = new_e
             else:
@@ -133,12 +143,34 @@ def _rewrite_svg(svg, rdict, asp=True):
     return ET.tostring(root, encoding="unicode", method="xml")
 
 
-def insert(replacements, svg=None, asp=True):
+def _make_ids_unique(svg):
+    """Prepend all ids in an SVG with a random string."""
+    root, idmap = ET.XMLID(svg)
+    token = token_hex(8)
+    replacements = {}
+    for k in idmap:
+        idmap[k].attrib["id"] = f"skunk-{token}-{k}"
+        replacements["#" + k] = f"#skunk-{token}-{k}"
+
+    # Also replace all references to these ids. We do this after a conversion to string
+    # because references to ids appear deep in style elements.
+    result = ET.tostring(root, encoding="unicode", method="xml")
+    for k, v in replacements.items():
+        result = result.replace(k, v)
+    return result
+
+
+def insert(replacements, svg=None, asp=True, randomize_ids=False):
     """Replaces elements by `id` in `svg`
 
-    :param replacements: Dictionary where key is id from :class:`Box` or :func:`connect`.
-        Value is :class:`matplotlib.figure.Figure`, path to SVG file, or `str` of SVG.
-    :param svg: SVG text that will be modified. If `None`, current matplotlib figure will be used.
+    :param replacements: Dictionary where key is id from :class:`Box` or
+        :func:`connect`. Value is :class:`matplotlib.figure.Figure`, path to SVG file,
+        or `str` of SVG.
+    :param svg: SVG text that will be modified. If `None`, current matplotlib figure
+        will be used.
+    :param asp: If `True`, will keep aspect ratio of the original image.
+    :param randomize_ids: If `True`, will prepend all ids in the SVG with a random
+        string to guarantee uniqueness.
     :returns: SVG as string
     """
     if svg is None:
@@ -153,12 +185,26 @@ def insert(replacements, svg=None, asp=True):
             with open(replacements[k]) as f:
                 replacements[k] = f.read()
 
+    # make all ids unique
+    if randomize_ids:
+        replacements = {
+            k: _make_ids_unique(replacement) for k, replacement in replacements.items()
+        }
+
     # ok now do it
     svg = _rewrite_svg(svg, replacements, asp)
     return svg
 
 
-def layout_svgs(svgs, labels=None, outline=None, shape=None, figsize=None, fontsize=None):
+def layout_svgs(
+    svgs,
+    labels=None,
+    outline=None,
+    shape=None,
+    figsize=None,
+    fontsize=None,
+    randomize_ids=False,
+):
     """Lays out svgs in a grid with labels. SVGs are given the same amount of space.
 
     :param svgs: list of svgs
@@ -167,6 +213,8 @@ def layout_svgs(svgs, labels=None, outline=None, shape=None, figsize=None, fonts
     :param shape: optional tuple specifying shape (nrows, ncols)
     :param figsize: figure size
     :param fontsize: font size of labels
+    :param randomize_ids: If `True`, will prepend all ids in the SVG with a random
+        string to guarantee uniqueness.
     :returns: SVG as string
     """
     import numpy as np
@@ -215,5 +263,5 @@ def layout_svgs(svgs, labels=None, outline=None, shape=None, figsize=None, fonts
             ax.axis("on")
             ax.set_xticks([])
             ax.set_yticks([])
-    svg = insert(replacements)
+    svg = insert(replacements, randomize_ids=randomize_ids)
     return svg
