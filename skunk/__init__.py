@@ -90,7 +90,7 @@ def _rewrite_svg(svg, rdict, asp=True):
     # Check that all ids are unique according to the SVG spec
     if len(set().union(*all_ids)) != sum(map(len, all_ids)):
         warnings.warn(
-            "All element id attributes are not unique, " \
+            "All element id attributes are not unique, "
             "your SVG may not be valid.",
             UserWarning
         )
