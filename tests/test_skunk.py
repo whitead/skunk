@@ -174,5 +174,5 @@ def test_skunk_grid():
     words = "This is a useless sentence of words".split()
     svgs = ["test-skunk-img.svg"] * len(words)
     skunk.layout_svgs(svgs, words)
-    
+
     skunk.layout_svgs(svgs, words, shape=(len(svgs), 1))
