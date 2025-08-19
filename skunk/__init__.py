@@ -1,13 +1,13 @@
-from os import replace
 from secrets import token_hex
 from matplotlib.offsetbox import DrawingArea, OffsetImage
 from matplotlib.patches import Rectangle
+from matplotlib.figure import Figure
 import io
 import matplotlib.pyplot as plt
-import matplotlib as mpl
 import xml.etree.ElementTree as ET
 import os
 import math
+import warnings
 
 
 class Box(DrawingArea):
@@ -89,9 +89,10 @@ def _rewrite_svg(svg, rdict, asp=True):
     all_ids.append(idmap.keys())
     # Check that all ids are unique according to the SVG spec
     if len(set().union(*all_ids)) != sum(map(len, all_ids)):
-        raise ValueError(
-            "All element id attributes must be unique, use "
-            "randomize_ids=True to fix this"
+        warnings.warn(
+            "All element id attributes are not unique, "
+            "your SVG may not be valid.",
+            UserWarning
         )
 
     parent_map = {c: p for p in root.iter() for c in p}
@@ -101,6 +102,7 @@ def _rewrite_svg(svg, rdict, asp=True):
             # try to use id width/height
             # case when we have image
             if "width" in e.attrib:
+                # negative y because SVGs have origin at top left
                 x, y = e.attrib["x"], -float(e.attrib["y"])
                 # make new node
                 # to hold things
@@ -125,7 +127,7 @@ def _rewrite_svg(svg, rdict, asp=True):
                     "Your given replacement object is not valid SVG (perhaps filepath was not valid?)"
                 )
             if not asp:
-                rr.attrib['preserveAspectRatio'] = 'none'
+                rr.attrib["preserveAspectRatio"] = "none"
             rr.attrib["x"] = str(x)
             rr.attrib["y"] = str(y)
             rr.attrib["width"] = str(dx)
@@ -160,7 +162,7 @@ def _make_ids_unique(svg):
     return result
 
 
-def insert(replacements, svg=None, asp=True, randomize_ids=False):
+def insert(replacements, svg=None, asp=True, randomize_ids=True):
     """Replaces elements by `id` in `svg`
 
     :param replacements: Dictionary where key is id from :class:`Box` or
@@ -170,18 +172,18 @@ def insert(replacements, svg=None, asp=True, randomize_ids=False):
         will be used.
     :param asp: If `True`, will keep aspect ratio of the original image.
     :param randomize_ids: If `True`, will prepend all ids in the SVG with a random
-        string to guarantee uniqueness.
+        string to make unique.
     :returns: SVG as string
     """
     if svg is None:
         svg = pltsvg()
-    if type(replacements) != dict:
+    if not isinstance(replacements, dict):
         raise ValueError("Must pass dictionary of skunk id: svg")
     # check over keys to figure out types
     for k in replacements:
-        if type(replacements[k]) == mpl.figure.Figure:
+        if isinstance(replacements[k], Figure):
             replacements[k] = pltsvg(replacements[k])
-        elif type(replacements[k]) == str and os.path.exists(replacements[k]):
+        elif isinstance(replacements[k], str) and os.path.exists(replacements[k]):
             with open(replacements[k]) as f:
                 replacements[k] = f.read()
 
@@ -203,7 +205,7 @@ def layout_svgs(
     shape=None,
     figsize=None,
     fontsize=None,
-    randomize_ids=False,
+    randomize_ids=True,
 ):
     """Lays out svgs in a grid with labels. SVGs are given the same amount of space.
 
@@ -214,17 +216,18 @@ def layout_svgs(
     :param figsize: figure size
     :param fontsize: font size of labels
     :param randomize_ids: If `True`, will prepend all ids in the SVG with a random
-        string to guarantee uniqueness.
+        string.
     :returns: SVG as string
     """
     import numpy as np
+
     has_label = True
     if labels is None:
         has_label = False
         labels = [None] * len(svgs)
     if outline is None:
         outline = [False] * len(svgs)
-    elif type(outline) == bool:
+    elif isinstance(outline, bool):
         outline = [outline] * len(svgs)
     elif len(outline) != len(svgs):
         raise ValueError("outline must be same length as svgs")
@@ -247,7 +250,7 @@ def layout_svgs(
         frameon=False,
         gridspec_kw={"hspace": 0.25 if has_label else 0.05, "wspace": 0.05},
     )
-    if type(axs) != np.ndarray:  # Happens if nrows=ncols=1
+    if not isinstance(axs, np.ndarray):  # Happens if nrows=ncols=1
         axs = np.array([[axs]])
     axs = axs.flatten()
     replacements = {}
